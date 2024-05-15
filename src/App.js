@@ -1,26 +1,34 @@
-import React, { useState } from 'react'
-import "./App.css"
+import React, { useState } from 'react';
+import "./App.css";
 
 function App() {
-  const [data, setData] = useState({})
-  const [location, setLocation] = useState('')
+  const [data, setData] = useState({});
+  const [location, setLocation] = useState('');
+  const [error, setError] = useState('');
 
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=imperial&appid=012316680c508f1a494c2cb3e39c875d`
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=imperial&appid=012316680c508f1a494c2cb3e39c875d`;
 
   const searchLocation = (event) => {
     if (event.key === 'Enter') {
-     
       fetch(url)
-        .then(response => response.json()) 
-        .then(data => {
-          setData(data)
-          console.log(data)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('No data found');
+          }
+          return response.json();
         })
-        .catch(error => console.error('Error fetching data:', error));
-      setLocation('')
+        .then(data => {
+          setData(data);
+          setError('');
+          console.log(data);
+        })
+        .catch(error => {
+          setData({});
+          setError('No data found');
+        });
+      setLocation('');
     }
-  }
-  
+  };
 
   return (
     <div className="app">
@@ -30,9 +38,11 @@ function App() {
           onChange={event => setLocation(event.target.value)}
           onKeyPress={searchLocation}
           placeholder='Enter Location'
-          type="text" />
+          type="text"
+        />
       </div>
       <div className="container">
+        {error && <p className="error">{error}</p>}
         <div className="top">
           <div className="location">
             <p>{data.name}</p>
@@ -45,7 +55,7 @@ function App() {
           </div>
         </div>
 
-        {data.name !== undefined &&
+        {data.name &&
           <div className="bottom">
             <div className="feels">
               {data.main ? <p className='bold'>{data.main.feels_like.toFixed()}°F</p> : null}
@@ -61,9 +71,6 @@ function App() {
             </div>
           </div>
         }
-
-
-
       </div>
     </div>
   );
